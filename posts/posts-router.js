@@ -39,14 +39,22 @@ router.get("/:id", async (req, res) => {
 
 //Creates a post using the information sent inside the `request body`.
 router.post("/", async (req, res) => {
-  try {
-    const post = await db.insert(req.body);
-    res.status(201).json(post);
-  } catch (error) {
-    // log error to server
-    console.log(error);
-    res.status(500).json({
-      message: "Error adding the post"
+  const { title, contents } = req.body;
+  if (title && contents) {
+    try {
+      const post = await db.insert(req.body);
+      const fullPost = await db.findById(post.id);
+      res.status(201).json(fullPost);
+    } catch (error) {
+      // log error to server
+      console.log(error);
+      res.status(500).json({
+        error: "There was an error while saving the post to the database"
+      });
+    }
+  } else {
+    res.status(400).json({
+      errorMessage: "Please provide title and contents for the post."
     });
   }
 });
