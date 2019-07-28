@@ -143,20 +143,32 @@ router.delete("/:id", async (req, res) => {
 
 // Updates the post with the specified `id` using data from the `request body`. Returns the modified document, **NOT the original**.
 router.put("/:id", async (req, res) => {
-  try {
-    const post = await db.update(req.params.id, req.body);
+  const { title, contents } = req.body;
+  if (title && contents) {
+    try {
+      const post = await db.update(req.params.id, req.body);
 
-    if (post) {
-      res.status(200).json(post);
-    } else {
-      res.status(404).json({ message: "Post not found" });
+      if (post) {
+        const updatedPost = await db.findById(req.params.id);
+        res.status(200).json(updatedPost);
+      } else {
+        res
+          .status(404)
+          .json({ message: "The post with the specified ID does not exist." });
+      }
+    } catch (error) {
+      // log error to server
+      console.log(error);
+      res
+        .status(500)
+        .json({ error: "The post information could not be modified." });
     }
-  } catch (error) {
-    // log error to server
-    console.log(error);
-    res.status(500).json({
-      message: "Error updating the post"
-    });
+  } else {
+    res
+      .status(400)
+      .json({
+        errorMessage: "Please provide title and contents for the post."
+      });
   }
 });
 
