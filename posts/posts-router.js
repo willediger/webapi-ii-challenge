@@ -119,19 +119,25 @@ router.get("/:id/comments", async (req, res) => {
 // Removes the post with the specified id and returns the **deleted post object**. You may need to make additional calls to the database in order to satisfy this requirement.
 router.delete("/:id", async (req, res) => {
   try {
-    const post = await db.remove(req.params.id);
-
+    const post = await db.findById(req.params.id);
     if (post) {
-      res.status(204).json(post);
+      const deletedPost = await db.remove(req.params.id);
+      if (deletedPost) {
+        res.status(200).json(post);
+      } else {
+        res
+          .status(404)
+          .json({ message: "The post with the specified ID does not exist." });
+      }
     } else {
-      res.status(404).json({ message: "Post not found" });
+      res
+        .status(404)
+        .json({ message: "The post with the specified ID does not exist." });
     }
   } catch (error) {
     // log error to server
     console.log(error);
-    res.status(500).json({
-      message: "Error deleting the post"
-    });
+    res.status(500).json({ error: "The post could not be removed" });
   }
 });
 
