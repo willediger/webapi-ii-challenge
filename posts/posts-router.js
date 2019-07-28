@@ -21,7 +21,6 @@ router.get("/", async (req, res) => {
 // Returns the post object with the specified id.
 router.get("/:id", async (req, res) => {
   try {
-    console.log(req.params.id);
     const post = await db.findById(req.params.id);
 
     if (post) {
@@ -66,6 +65,25 @@ router.post("/:id/comments", async (req, res) => {
     console.log(error);
     res.status(500).json({
       message: "Error adding the comment"
+    });
+  }
+});
+
+// Returns an array of all the comment objects associated with the post with the specified id.
+router.get("/:id/comments", async (req, res) => {
+  try {
+    const comments = await db.findPostComments(req.params.id);
+
+    if (comments) {
+      res.status(200).json(comments);
+    } else {
+      res.status(404).json({ message: "Comments not found" });
+    }
+  } catch (error) {
+    // log error to server
+    console.log(error);
+    res.status(500).json({
+      message: "Error retrieving the Comments"
     });
   }
 });
