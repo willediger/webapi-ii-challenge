@@ -61,19 +61,31 @@ router.post("/", async (req, res) => {
 
 // Creates a comment for the post with the specified id using information sent inside of the `request body`.
 router.post("/:id/comments", async (req, res) => {
-  try {
-    //commentToInsert = form of {text, post_id}
-    // req.body has form of {text}
-    const commentToInsert = { ...req.body, post_id: req.params.id };
-    const comment = await db.insertComment(commentToInsert);
-    console.log("comment", comment);
-    res.status(201).json(comment);
-  } catch (error) {
-    // log error to server
-    console.log(error);
-    res.status(500).json({
-      message: "Error adding the comment"
-    });
+  const { text } = req.body;
+  if (text) {
+    try {
+      //commentToInsert = form of {text, post_id}
+      // req.body has form of {text}
+      const commentToInsert = { text, post_id: req.params.id };
+      const { id } = await db.insertComment(commentToInsert);
+      const fullComment = await db.findCommentById(id);
+      res.status(201).json(fullComment);
+    } catch (error) {
+      // log error to server
+      console.log(error);
+      if (error.errno === 19) {
+        res
+          .status(404)
+          .json({ message: "The post with the specified ID does not exist." });
+      }
+      res.status(500).json({
+        error: "There was an error while saving the comment to the database"
+      });
+    }
+  } else {
+    res
+      .status(400)
+      .json({ errorMessage: "Please provide text for the comment." });
   }
 });
 
